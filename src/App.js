@@ -8,17 +8,26 @@ const App = () => {
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
   };
-
   const handleJsonConversion = () => {
     try {
-      const unescapedJsonString = JSON.parse(inputValue);
-      const actualJsonObject = JSON.parse(unescapedJsonString);
+      // Replace escaped characters and attempt to parse the JSON string
+      const unescapedString = inputValue.replace(/\\"/g, '"');
+      const parsedValue = JSON.parse(unescapedString);
 
-      setOutputValue(actualJsonObject);
+      // Stringify the parsed value to ensure it is displayed correctly
+      setOutputValue(JSON.stringify(parsedValue, null, 2)); // Pretty print the output
     } catch (error) {
-      setOutputValue("Invalid JSON format");
+      try {
+        // If the first attempt fails, try parsing the inputValue directly
+        const parsedValue = JSON.parse(inputValue);
+        setOutputValue(JSON.stringify(parsedValue, null, 2)); // Pretty print the output
+      } catch (error) {
+        // If both attempts fail, set the output value to an error message
+        setOutputValue("Invalid JSON format");
+      }
     }
   };
+
   return (
     <div
       style={{
