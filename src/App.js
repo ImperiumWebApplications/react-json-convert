@@ -8,23 +8,32 @@ const App = () => {
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
   };
-  const handleJsonConversion = () => {
-    try {
-      // Replace escaped characters and attempt to parse the JSON string
-      const unescapedString = inputValue.replace(/\\"/g, '"');
-      const parsedValue = JSON.parse(unescapedString);
 
-      // Stringify the parsed value to ensure it is displayed correctly
-      setOutputValue(JSON.stringify(parsedValue, null, 2)); // Pretty print the output
-    } catch (error) {
-      try {
-        // If the first attempt fails, try parsing the inputValue directly
-        const parsedValue = JSON.parse(inputValue);
-        setOutputValue(JSON.stringify(parsedValue, null, 2)); // Pretty print the output
-      } catch (error) {
-        // If both attempts fail, set the output value to an error message
-        setOutputValue("Invalid JSON format");
+  const formatJSON = () => {
+    try {
+      let formattedString = inputValue.trim();
+      let parsedJson;
+
+      // If the string starts with a single quote, assume the whole string is enclosed in single quotes
+      if (formattedString.startsWith("'") && formattedString.endsWith("'")) {
+        formattedString = formattedString.slice(1, -1); // Remove the surrounding single quotes
+        parsedJson = JSON.parse(JSON.stringify(formattedString));
+      } else {
+        // For doubly escaped JSON
+        formattedString = formattedString
+          .replace(/^"|"$/g, "") // Remove surrounding double quotes
+          .replace(/\\"/g, '"') // Unescape double quotes
+          .replace(/\\\\/g, "\\"); // Unescape backslashes
+        parsedJson = JSON.parse(formattedString);
       }
+
+      // Set the parsed JSON object as the output value
+      setOutputValue(
+        typeof parsedJson === "object" ? JSON.stringify(parsedJson) : parsedJson
+      );
+    } catch (e) {
+      // If parsing fails, set an error message as the output value
+      setOutputValue("Invalid JSON: " + e.message);
     }
   };
 
@@ -48,9 +57,9 @@ const App = () => {
         style={{ marginBottom: "20px" }}
         variant="contained"
         color="primary"
-        onClick={handleJsonConversion}
+        onClick={formatJSON}
       >
-        Convert to JSON
+        Format JSON
       </Button>
       <TextareaAutosize
         style={{ width: "100%" }}
